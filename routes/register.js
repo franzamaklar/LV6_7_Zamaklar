@@ -4,8 +4,8 @@ const router = express.Router()
 
 app.set('view engine', 'ejs');
 
-router.get("/projects", (req, res) => {
-    res.render('projects.ejs', req)
+router.get("/register", (req, res) => {
+    res.render('register.ejs')
 })
 
 module.exports = router

@@ -2,6 +2,9 @@ const express = require('express')
 const app = express()
 
 const indexRoute = require('./routes/index')
+const loginRoute = require('./routes/login')
+const registerRoute = require('./routes/register')
+const projectsRoute = require('./routes/projects')
 
 const bodyParser = require('body-parser')
 const { ObjectId } = require('mongodb')
@@ -24,35 +27,75 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
 
     const db = client.db('projects')
     const projectsCollection = db.collection('projects')
+    const usersCollection = db.collection('users')
 
     app.set('view engine', 'ejs')
     app.use(express.json());
 
+    //IndexRoute
     app.use("/", indexRoute)
 
     app.use(express.static('public'))
 
     app.use(bodyParser.urlencoded({ extended: true }))
 
-    app.get('/projects', (req, res) => {
-      projectsCollection
+    //RegisterRoutes
+    app.all("/register", registerRoute);
+
+    app.post("/register", (req, res) => {
+      usersCollection
+      .insertOne(req.body)
+      .then(data => {
+        res.redirect('/projects/' + data._id.toString())
+      })
+    })
+
+    //LoginRoutes
+    app.all("/login", loginRoute);
+
+    app.all("/login", (req, res, next) => {
+        usersCollection
+        .findOne({ email : req.body.email, password : req.body.password } )
+        .then(data => {
+            res.redirect('/projects/' + data._id.toString())
+        })
+    })
+
+    //LogoutRoutes
+
+    app.all("/logout", (req, res) => {
+      res.redirect('/')
+    })
+
+    //ProjectsRoutes
+    app.get('/projects/:id', (req, res) => {
+      var spath = req.path.split('/')
+      var id = spath[2]
+      usersCollection
       .find()
       .toArray()
+      .then(users => {
+      projectsCollection
+      .find({userID : id})
+      .toArray()
       .then(results => {
-        res.render('projects.ejs', { projects: results })
+        res.render('projects.ejs', { projects: results, userID : id, allUsers: users })
       })
     .catch(error => console.error(error))
     })
+  })
 
-    app.get('/projects/edit/:id', (req, res) => {
+    app.all('/projects/:id/edit/:id', (req, res) => {
+      var spath = req.path.split('/')
+      var id = spath[2]
       projectsCollection
       .findOne({ _id: new ObjectId(req.params.id) })
       .then(data => {
-        res.render('edit-project.ejs', { project: data })
+        res.render('edit-project.ejs', { project: data, userID: id })
       })
     })
 
-    app.get('/projects/details/:id', (req, res) => {
+    app.get('/projects/:id/details/:id', (req, res) => {
       projectsCollection
       .findOne({ _id: new ObjectId(req.params.id) })
       .then((data) => {
@@ -60,16 +103,20 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
       })
     })
 
-    app.post('/projects', (req, res) => {
+    app.post('/projects/:id/add', (req, res) => {
+        var spath = req.path.split('/')
+        var id = spath[2]
         projectsCollection
         .insertOne(req.body)
         .then(() => {
-            res.redirect('/projects')
+            res.redirect('/projects/' + id)
         })
         .catch(error => console.error(error))
     })
 
-    app.post('/projects/edit/:id/update', (req, res) => {
+    app.post('/projects/:id/edit/:id/update', (req, res) => {
+      var spath = req.path.split('/')
+        var id = spath[2]
       projectsCollection
       .updateOne(
         { _id: new ObjectId(req.params.id) }, 
@@ -85,15 +132,43 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
           }
         })
         .then(() => {
-          res.redirect('/projects')
+          res.redirect('/projects/' + id)
         })
     })
 
-    app.get('/projects/delete/:id', (req, res) => {
+    app.get('/projects/:id/delete/:id', (req, res) => {
+      var spath = req.path.split('/')
+        var id = spath[2]
       projectsCollection
       .deleteOne({ _id: new ObjectId(req.params.id) })
       .then(() => {
-        res.redirect('/projects')
+        res.redirect('/projects/' + id)
+      })
+    })
+
+    app.all('/projects/:id/edit/:id/update_jobs', (req, res) => {
+      var spath = req.path.split('/')
+        var id = spath[2]
+      projectsCollection
+      .updateOne(
+        { _id: new ObjectId(req.params.id) }, 
+        { $set: 
+          { 
+            jobs: req.body.jobs,
+          }
+        })
+        .then(() => {
+          res.redirect('/projects/' + id)
+        })
+    })
+
+    app.all('/projects/:id/edit_jobs/:id', (req, res) => {
+      var spath = req.path.split('/')
+      var id = spath[2]
+      projectsCollection
+      .findOne({ _id: new ObjectId(req.params.id) })
+      .then(data => {
+        res.render('edit-job-project.ejs', { project: data, userID : id })
       })
     })
 

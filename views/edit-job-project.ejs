@@ -14,35 +14,15 @@
 </head>
 <body class="antialiased">
     <div class="relative d-flex flex-column sm:items-center min-h-screen bg-dots-darker bg-center bg-gray-100 selection:bg-red-500 selection:text-white">
-    <h1 class="container mt-5 font-semibold">Edit Project</h1>
+    <h1 class="container mt-5 font-semibold">Edit jobs on project</h1>
 
     <div class="container">
-        <form action="/projects/<%= userID %>/edit/<%= project._id %>/update" method="POST" class="w-50 mt-5">
-            <input type="hidden" name="_id" value="<%= project._id %>">
-            <div class="form-group">
-                <input type="text" class="form-control mt-2" value="<%= project.name %>" name="name" placeholder="Name">
-            </div>
-            <div class="form-group">
-                <input type="text" class="form-control mt-2" value="<%= project.description %>" name="description" placeholder="Description">
-            </div>
-            <div class="form-group">
-                <input type="number" class="form-control mt-2" value="<%= project.price %>" name="price" placeholder="Price">
-            </div>
+        <form action="/projects/<%= userID %>/edit/<%= project._id %>/update_jobs" method="POST" class="w-50 mt-5">
             <div class="form-group">
                 <input type="text" class="form-control mt-2" value="<%= project.jobs %>" name="jobs" placeholder="Jobs done">
             </div>
-            <div class="form-group">
-                <input type="date" class="form-control mt-2" value="<%= project.start %>" name="start" placeholder="Start date">
-            </div>
-            <div class="form-group">
-                <input type="date" class="form-control mt-2" value="<%= project.end %>" name="end" placeholder="End date">
-            </div>
-            <div class="form-group">
-                <input type="text" class="form-control mt-2" value="<%= project.members %>" name="members" placeholder="Members">
-            </div>
-            <button type="submit" class="btn bg-dark text-white mt-2 w-100 justify-center"><a class="text-white text-decoration-none" href="/projects/<%= userID %>/edit/<%= project._id %>/update">Edit</a></button>
-          </form>
-    </div>
+            <button type="submit" class="btn bg-dark text-white mt-2 w-100 justify-center"><a class="text-white text-decoration-none" href="/projects/<%= userID %>/edit/<%= project._id %>/update_jobs">Edit</a></button>
+        </form>
     </div>
 
 </body>

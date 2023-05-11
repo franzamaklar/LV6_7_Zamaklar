@@ -19,7 +19,7 @@
         <h1 class="container mt-5 text-left font-semibold">Project Management</h1>
 
         <div class="container">
-        <form action="/projects" method="POST" class="w-50 mt-5">
+        <form action="/projects/<%= userID %>/add" method="POST" class="w-50 mt-5">
             <div class="form-group">
                 <input type="text" class="form-control mt-2" id="project-name" name="name" placeholder="Name">
             </div>
@@ -38,13 +38,28 @@
             <div class="form-group">
                 <input type="date" class="form-control mt-2" id="end-date" name="end" placeholder="End date">
             </div>
-            <div class="form-group">
-                <input type="text" class="form-control mt-2" id="members" name="members" placeholder="Members">
+            <div class="form-group d-inline">
+                <label>Members: </label>
+                <select class = "mt-1" id = "members" name="members">
+                    <% for(var i=0; i<allUsers.length; i++) { %>
+                    <% if(allUsers[i]._id != userID) { %>
+                        <option value="<%= allUsers[i].Name %>"><%= allUsers[i].Name %></option>
+                   <%  } %> 
+                    <% } %>
+                  </select>
+            </div>
+            <div class="form-group d-none">
+                <input type="text" id="userID" name="userID" value="<%= userID %>">
             </div>
             <button type="submit" class="btn mt-2 w-100 justify-center bg-gray-100 border border-dark">Add</button>
           </form>
     </div>
 
+    <div class="mt-5">
+        <h1 class="font-semibold">Moji projekti koje vodim:</h1>
+    </div>
+
+    <form action="/projects/" method="GET" class="w-50"></form>
     <div class="container mt-5 w-100">
         <table class="table table-bordered table-striped">
             <thead>
@@ -71,14 +86,53 @@
                     <td><%= projects[i].start %></td>
                     <td><%= projects[i].end %></td>
                     <td><%= projects[i].members %></td>
-                    <td><button type="button" class="btn bg-dark text-white edit-button"><a class="text-white text-decoration-none" href="/projects/edit/<%= projects[i]._id %>">Edit</a></button></td>
-                    <td><button type="button" class="btn bg-dark text-white background-dark"><a class="text-white text-decoration-none" href="/projects/details/<%= projects[i]._id %>">Details</a></button></td>
-                    <td><button type="button" class="btn bg-dark text-white delete"><a class="text-white text-decoration-none" href="/projects/delete/<%= projects[i]._id %>">Delete</a></button></td>
+                    <td><button type="button" class="btn bg-dark text-white edit-button"><a class="text-white text-decoration-none" href="/projects/<%= userID %>/edit/<%= projects[i]._id %>">Edit</a></button></td>
+                    <td><button type="button" class="btn bg-dark text-white background-dark"><a class="text-white text-decoration-none" href="/projects/<%= userID %>/details/<%= projects[i]._id %>">Details</a></button></td>
+                    <td><button type="button" class="btn bg-dark text-white delete"><a class="text-white text-decoration-none" href="/projects/<%= userID %>/delete/<%= projects[i]._id %>">Delete</a></button></td>
                 </tr>
                 <% } %>
             </tbody>
         </table>
     </div>
+
+    <div class="mt-5">
+        <h1 class="font-semibold">Moji projekti na kojima sam član:</h1>
+    </div>
+
+    <form action="/projects/" method="GET" class="w-50"></form>
+    <div class="container mt-5 w-100">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Jobs done</th>
+                    <th scope="col">Start date</th>
+                    <th scope="col">End date</th>
+                    <th scope="col">Members</th>
+                    <th scope="col">Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for(var i = 0; i < projects.length; i++) {%>  
+                <tr>
+                    <% if(projects[i].members.includes(allUsers[allUsers.findIndex(x => x._id == userID)].Name)) { %>
+                    <td><%= projects[i].name %></td>
+                    <td><%= projects[i].description %></td>
+                    <td><%= projects[i].price %></td>
+                    <td><%= projects[i].jobs %></td>
+                    <td><%= projects[i].start %></td>
+                    <td><%= projects[i].end %></td>
+                    <td><%= projects[i].members %></td>
+                    <td><button type="button" class="btn bg-dark text-white edit-button"><a class="text-white text-decoration-none" href="/projects/<%= userID %>/edit_jobs/<%= projects[i]._id %>">Edit</a></button></td>
+                </tr>
+                <% } %>
+                <% } %>
+            </tbody>
+        </table>
+
+
 </div>
 
 </body>
