@@ -45,6 +45,9 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
     app.post("/register", (req, res) => {
       usersCollection
       .insertOne(req.body)
+
+      usersCollection
+      .findOne({email : req.body.email})
       .then(data => {
         res.redirect('/projects/' + data._id.toString())
       })
@@ -76,7 +79,7 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
       .toArray()
       .then(users => {
       projectsCollection
-      .find({userID : id})
+      .find()
       .toArray()
       .then(results => {
         res.render('projects.ejs', { projects: results, userID : id, allUsers: users })
@@ -88,10 +91,15 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
     app.all('/projects/:id/edit/:id', (req, res) => {
       var spath = req.path.split('/')
       var id = spath[2]
+      usersCollection
+      .find()
+      .toArray()
+      .then(users => {
       projectsCollection
       .findOne({ _id: new ObjectId(req.params.id) })
       .then(data => {
-        res.render('edit-project.ejs', { project: data, userID: id })
+        res.render('edit-project.ejs', { project: data, userID: id, allUsers : users })
+        })
       })
     })
 
@@ -116,7 +124,10 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
 
     app.post('/projects/:id/edit/:id/update', (req, res) => {
       var spath = req.path.split('/')
-        var id = spath[2]
+      var id = spath[2]
+      projectsCollection
+      .findOne({_id : new ObjectId(req.params.id)})
+      .then(project => {
       projectsCollection
       .updateOne(
         { _id: new ObjectId(req.params.id) }, 
@@ -128,12 +139,13 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
             jobs: req.body.jobs,
             start: req.body.start,
             end: req.body.end,
-            members : req.body.members,
+            members : project.members == "-" || req.body.members == "-" ? req.body.members : project.members + "," + req.body.members,
           }
         })
         .then(() => {
           res.redirect('/projects/' + id)
         })
+      })
     })
 
     app.get('/projects/:id/delete/:id', (req, res) => {
@@ -141,6 +153,16 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
         var id = spath[2]
       projectsCollection
       .deleteOne({ _id: new ObjectId(req.params.id) })
+      .then(() => {
+        res.redirect('/projects/' + id)
+      })
+    })
+
+    app.get('/projects/:id/archive/:id', (req, res) => {
+      var spath = req.path.split('/')
+        var id = spath[2]
+      projectsCollection
+      .updateOne({ _id: new ObjectId(req.params.id) },  {$set: { isArchived : "1" }})
       .then(() => {
         res.redirect('/projects/' + id)
       })
@@ -169,6 +191,23 @@ MongoClient.connect(uri, { useUnifiedTopology: true })
       .findOne({ _id: new ObjectId(req.params.id) })
       .then(data => {
         res.render('edit-job-project.ejs', { project: data, userID : id })
+      })
+    })
+
+    app.all('/projects/:id/archive', (req, res) => {
+      var spath = req.path.split('/')
+      var id = spath[2]
+      usersCollection
+      .find()
+      .toArray()
+      .then(users => {
+      projectsCollection
+      .find()
+      .toArray()
+      .then(results => {
+        res.render('archive-project.ejs', { projects: results, userID : id, allUsers: users })
+      })
+      .catch(error => console.error(error))
       })
     })
 
